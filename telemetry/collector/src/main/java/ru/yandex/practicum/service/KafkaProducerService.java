@@ -12,6 +12,8 @@ public class KafkaProducerService {
 
     private final KafkaTemplate<String, SensorEvent> sensorKafkaTemplate;
     private final KafkaTemplate<String, HubEvent> hubKafkaTemplate;
+    private static final String SENSORS_TOPIC = "telemetry.sensors.v1";
+    private static final String HUBS_TOPIC = "telemetry.hubs.v1";
 
     @Autowired
     public KafkaProducerService(KafkaTemplate<String, SensorEvent> sensorKafkaTemplate,
@@ -21,10 +23,10 @@ public class KafkaProducerService {
     }
 
     public void sendSensorEvent(SensorEvent event) {
-        sensorKafkaTemplate.send("telemetry.sensors.v1", event.getId(), event);
+        sensorKafkaTemplate.send(SENSORS_TOPIC, event.getId(), event);
     }
 
     public void sendHubEvent(HubEvent event) {
-        hubKafkaTemplate.send("telemetry.hubs.v1", event.getHubId(), event);
+        hubKafkaTemplate.send(HUBS_TOPIC, event.getHubId(), event);
     }
 }
