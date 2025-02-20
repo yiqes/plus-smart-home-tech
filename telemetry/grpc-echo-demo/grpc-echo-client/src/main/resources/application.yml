@@ -1,7 +1,0 @@
-grpc:
-  client:
-    echo:
-      address: 'static://localhost:9090'
-      enableKeepAlive: true
-      keepAliveWithoutCalls: true
-      negotiationType: plaintext
