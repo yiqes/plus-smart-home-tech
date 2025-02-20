@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "ru.yandex.practicum.grpc.echo";
+option java_outer_classname = "EchoProto";
+
+package echo;
+
+// Определяем наш EchoService
+service EchoService {
+  // Описание RPC метода
+  rpc Echo (EchoRequest) returns (EchoResponse);
+}
+
+// Сообщение запроса
+message EchoRequest {
+  string message = 1;
+}
+
+// Сообщение ответа
+message EchoResponse {
+  string message = 1;
+}
