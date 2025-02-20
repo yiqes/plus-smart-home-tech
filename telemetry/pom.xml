@@ -15,6 +15,9 @@
     <modules>
         <module>serialization</module>
         <module>collector</module>
+        <module>grpc-echo-demo</module>
+        <module>grpc-echo-demo/grpc-echo-client</module>
+        <module>grpc-echo-demo/grpc-echo-server</module>
     </modules>
 
 </project>
