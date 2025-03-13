@@ -1,0 +1,6 @@
+collector:
+  topic:
+    sensor: telemetry.sensors.v1
+    hub: telemetry.hubs.v1
+  kafka:
+    server: localhost:9092

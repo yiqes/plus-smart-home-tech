@@ -1,0 +1,35 @@
+analyzer:
+  kafka:
+    server: localhost:9092
+  snapshot:
+    topic: telemetry.snapshots.v1
+    deserializer: ru.yandex.practicum.utils.SnapshotDeserializer
+    group.id: AnalyzerSnapshotGroup
+  hub:
+    deserializer: ru.yandex.practicum.utils.HubDeserializer
+    group.id: AnalyzerHubGroup
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+    show_sql: true
+  sql:
+    init:
+      mode: always
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/analyzer-db
+    username: analyzer
+    password: analyzer
+
+grpc:
+  client:
+    router:
+      address: static://localhost:59090
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
