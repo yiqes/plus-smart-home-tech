@@ -1,32 +1,59 @@
 package ru.yandex.practicum.config;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
 
 @Configuration
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class KafkaConfig {
-    @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "analyzer-group");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.springframework.kafka.support.serializer.JsonDeserializer");
-        return new DefaultKafkaConsumerFactory<>(props);
+    @Value("${analyzer.kafka.server}")
+    String kafkaBootstrapServers;
+    @Value("${analyzer.kafka.snapshot.group.id}")
+    String snapshotGroupId;
+    @Value("${analyzer.kafka.snapshot.topic}")
+    @Getter
+    String inSnapshotTopic;
+    @Value("${analyzer.kafka.snapshot.deserializer}")
+    String deserializerSnapshotClassName;
+
+    @Value("${analyzer.kafka.hub.group.id}")
+    String hubGroupId;
+    @Value("${analyzer.kafka.hub.topic}")
+    @Getter
+    String inHubTopic;
+    @Value("${analyzer.kafka.hub.deserializer}")
+    String deserializerHubClassName;
+
+
+    @Bean(name = "SnapshotConsumer")
+    public KafkaConsumer<String, SensorsSnapshotAvro> getKafkaSnapshotConsumer() {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, snapshotGroupId);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializerSnapshotClassName);
+        return new KafkaConsumer<>(props);
     }
 
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
-        return factory;
+    @Bean(name = "HubConsumer")
+    public KafkaConsumer<String, HubEventAvro> getKafkaHubConsumer() {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, hubGroupId);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializerHubClassName);
+        return new KafkaConsumer<>(props);
     }
+
 }
