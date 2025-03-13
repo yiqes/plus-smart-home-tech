@@ -53,7 +53,7 @@ public class ScenarioAddedHandler implements HubHandler {
 
         return actions.stream()
                 .map(a -> Action.builder()
-                        .sensor(sensorRepository.findById(Long.valueOf(a.getSensorId())).orElseThrow())
+                        .sensor(sensorRepository.findById((long) a.getSensorId()).orElseThrow())
                         .type(ActionType.valueOf(a.getType().name()))
                         .value(a.getValue() == null ? 0 : a.getValue())
                         .build())
