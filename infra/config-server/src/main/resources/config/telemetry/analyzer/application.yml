@@ -29,7 +29,7 @@ spring:
 grpc:
   client:
     router:
-      address: static://localhost:59090
+      address: static://localhost:59091
       enableKeepAlive: true
       keepAliveWithoutCalls: true
       negotiationType: plaintext
