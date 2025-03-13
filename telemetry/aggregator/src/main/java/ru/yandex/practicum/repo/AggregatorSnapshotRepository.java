@@ -28,7 +28,7 @@ public class AggregatorSnapshotRepository {
                 && oldSensorState.getData().equals(event.getPayload())) {
             return Optional.empty();
         }
-        SensorStateAvro newSensorState = new SensorStateAvro(event.getTimestamp(), event.getPayload());
+        SensorStateAvro newSensorState = new SensorStateAvro(Instant.ofEpochSecond(event.getTimestamp()), event.getPayload());
         currentSnapshot.getSensorsState().put(event.getId(), newSensorState);
         currentSnapshot.setTimestamp(Instant.ofEpochSecond(event.getTimestamp()));
         snapshots.put(event.getHubId(), currentSnapshot);
