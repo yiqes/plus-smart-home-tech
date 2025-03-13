@@ -33,3 +33,35 @@ services:
                              --partitions 1 --replication-factor 1 --if-not-exists \
                              --bootstrap-server kafka:29092'"
     init: true
+
+analyzer-db:
+  image: postgres:16.1
+  container_name: postgres-analyzer
+  restart: on-failure
+  ports:
+    - "5432:5432"
+  environment:
+    - POSTGRES_PASSWORD=analyzer
+    - POSTGRES_USER=analyzer
+    - POSTGRES_DB=analyzer-db
+  healthcheck:
+    test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+    timeout: 5s
+    interval: 5s
+    retries: 10
+
+  commerce-db:
+    image: postgres:16.1
+    container_name: postgres-commerce
+    restart: on-failure
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_PASSWORD=commerce
+      - POSTGRES_USER=commerce
+      - POSTGRES_DB=commerce-db
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
