@@ -16,7 +16,7 @@ collector:
         "bootstrap.servers": localhost:9092
         "client.id": "telemetry.collection"
         "key.serializer": org.apache.kafka.common.serialization.StringSerializer
-        "value.serializer": ru.yandex.practicum.kafka.GeneralAvroSerializer
+        "value.serializer": ru.yandex.practicum.serializer.GeneralAvroSerializer
       topics:
         sensor-events: telemetry.sensor.v1
         hubs-events: telemetry.hubs.v1
