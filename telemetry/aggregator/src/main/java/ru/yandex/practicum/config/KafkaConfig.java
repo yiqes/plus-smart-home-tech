@@ -1,55 +1,69 @@
 package ru.yandex.practicum.config;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.experimental.FieldDefaults;
+import lombok.*;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
-import ru.yandex.praticum.BaseAvroSerializer;
 
-import java.util.Properties;
+import java.util.*;
 
+@Data
 @Configuration
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@ConfigurationProperties("aggregator.kafka")
 public class KafkaConfig {
-    @Getter
-    @Value("${aggregator.kafka.in.topic}")
-    String inTopic;
-    @Getter
-    @Value("${aggregator.kafka.out.topic}")
-    String outTopic;
-    @Value("${aggregator.kafka.server}")
-    String kafkaBootstrapServers;
-    @Value("${aggregator.kafka.value.deserializer}")
-    String deserializerClassName;
-    @Value("${aggregator.kafka.group.id}")
-    String groupId;
+    public ProducerConfig producer;
+    public ConsumerConfig consumer;
+    private Map<String, String> topics;
 
-    @Bean
-    public KafkaProducer<String, SpecificRecordBase> getKafkaProducer() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, BaseAvroSerializer.class);
-        return new KafkaProducer<>(props);
+    public enum TopicType {
+        TELEMETRY_SENSORS, TELEMETRY_SNAPSHOTS;
+
+        public static TopicType from(String type) {
+            switch (type) {
+                case "telemetry-sensors" -> {
+                    return TopicType.TELEMETRY_SENSORS;
+                }
+                case "telemetry-snapshots" -> {
+                    return TopicType.TELEMETRY_SNAPSHOTS;
+                }
+                default -> throw new RuntimeException("Topic type not found");
+
+            }
+        }
+    }
+
+    public record ProducerConfig(Properties properties) {
+    }
+
+    public record ConsumerConfig(Properties properties) {
+    }
+
+    @Getter
+    public static class Topics {
+        private final EnumMap<TopicType, String> topics = new EnumMap<>(TopicType.class);
+
+        public Topics(Map<String, String> topics) {
+            for (Map.Entry<String, String> entry : topics.entrySet()) {
+                this.topics.put(TopicType.from(entry.getKey()), entry.getValue());
+            }
+        }
     }
 
     @Bean
-    public KafkaConsumer<String, SensorEventAvro> getKafkaConsumer() {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializerClassName);
-        return new KafkaConsumer<>(props);
+    public KafkaProducer<String, SpecificRecordBase> kafkaProducer() {
+        return new KafkaProducer<>(producer.properties);
+    }
+
+    @Bean
+    public KafkaConsumer<String, SpecificRecordBase> kafkaConsumer() {
+        return new KafkaConsumer<>(consumer.properties);
+    }
+
+    @Bean
+    public EnumMap<TopicType, String> topics() {
+        return new Topics(topics).getTopics();
     }
 }

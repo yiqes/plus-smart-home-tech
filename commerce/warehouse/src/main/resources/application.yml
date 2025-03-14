@@ -5,16 +5,18 @@ spring:
     import: "configserver:"
   cloud:
     config:
+      fail-fast: true
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000
       discovery:
         enabled: true
         service-id: config-server
-      fail-fast: true
-      retry:
-        use-random-policy: true
-        max-interval: 6000
+
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://${eureka.instance.hostname:localhost}:${eureka.instance.port:8761}/eureka/
+
 server:
   port: 0

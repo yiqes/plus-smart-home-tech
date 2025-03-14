@@ -23,14 +23,14 @@ public class HubClientGrpc {
         DeviceActionRequest actionRequestProto = DeviceActionRequest.newBuilder()
                 .setHubId(hubId)
                 .setAction(DeviceActionProto.newBuilder()
-                        .setSensorId(action.getSensor().getId())
+                        .setSensorId(action.getSensorId())
                         .setType(ActionTypeProto.valueOf(action.getType().name()))
                         .setValue(action.getValue())
                         .build())
                 .build();
         stub.handleDeviceAction(actionRequestProto);
         log.info("Message sent to Hub Router: {} sensor: {} action: {}",
-                hubId, action.getSensor().getId(), action.getType().name());
+                hubId, action.getSensorId(), action.getType().name());
     }
 
 
