@@ -34,7 +34,7 @@ public class ScenarioService {
                         .sensorId(conditionEvent.getSensorId())
                         .type(ScenarioConditionType.valueOf(conditionEvent.getType().name()))
                         .operation(ScenarioConditionOperation.valueOf(conditionEvent.getOperation().name()))
-                        .value(conditionEvent.getValue())
+                        .value(conditionEvent.getValue() != null ? convertToValue(conditionEvent.getValue()) : null)
                         .scenario(scenario)
                         .build())
                 .collect(Collectors.toList());

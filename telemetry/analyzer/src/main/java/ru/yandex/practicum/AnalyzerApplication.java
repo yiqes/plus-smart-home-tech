@@ -4,6 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ConfigurableApplicationContext;
+import ru.yandex.practicum.service.HubEventProcessor;
+import ru.yandex.practicum.service.SnapshotProcessor;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
@@ -15,6 +17,7 @@ public class AnalyzerApplication {
         Thread hubThread = new Thread(eventProcessor);
         hubThread.setName("Hub Thread");
         hubThread.start();
-        snapshotProcessor.start();
+
+        snapshotProcessor.run();
     }
 }
