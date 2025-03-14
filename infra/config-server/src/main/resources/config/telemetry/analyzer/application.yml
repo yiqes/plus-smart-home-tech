@@ -17,12 +17,12 @@ analyzer:
       "bootstrap.servers": localhost:9092
       "group.id": analyzer-hub-group
       "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
-      "value.deserializer": ru.yandex.practicum.deserializer.HubEventDeserializer
+      "value.deserializer": ru.yandex.practicum.util.HubEventDeserializer
     snapshot-consumer-properties:
       "bootstrap.servers": localhost:9092
       "group.id": analyzer-snapshot-group
       "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
-      "value.deserializer": deserializer.SensorSnapshotDeserializer
+      "value.deserializer": ru.yandex.practicum.util.SensorSnapshotDeserializer
     topics:
       hubs-events: telemetry.hubs.v1
       sensors-snapshot: telemetry.snapshots.v1

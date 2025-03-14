@@ -16,7 +16,7 @@ aggregator:
         "bootstrap.servers": localhost:9092
         "client.id": "telemetry.collection"
         "key.serializer": org.apache.kafka.common.serialization.StringSerializer
-        "value.serializer": ru.yandex.practicum.kafka.GeneralAvroSerializer
+        "value.serializer": ru.yandex.practicum.service.GeneralAvroSerializer
 
 
     consumer:
@@ -25,5 +25,5 @@ aggregator:
         "auto-offset-reset": earliest
         "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
         #      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
-        "value.deserializer": ru.yandex.practicum.kafka.SensorEventDeserializer
+        "value.deserializer": ru.yandex.practicum.service.SensorEventDeserializer
         bootstrap.servers": localhost:9092
