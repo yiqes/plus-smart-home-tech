@@ -19,9 +19,8 @@ public class Condition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    @NotBlank
-    @ManyToOne(cascade = CascadeType.ALL)
-    Sensor sensor;
+    @Column(name = "sensor_id", nullable = false)
+    String sensorId;
     @Enumerated(EnumType.STRING)
     ScenarioConditionType type;
     @Enumerated(EnumType.STRING)

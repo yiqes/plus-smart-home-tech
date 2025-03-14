@@ -2,73 +2,120 @@ package ru.yandex.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.errors.WakeupException;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.config.KafkaConfig;
-import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
-import ru.yandex.practicum.repo.AggregatorSnapshotRepository;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class AggregationStarter {
-    private final AggregatorSnapshotRepository aggregatorSnapshotRepository;
-    private final KafkaProducer<String, SpecificRecordBase> producer;
+    private final KafkaProducer<String, SensorsSnapshotAvro> producer;
     private final KafkaConsumer<String, SensorEventAvro> consumer;
-    private final KafkaConfig kafkaConfig;
+    private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
+    private final EnumMap<KafkaConfig.TopicType, String> topics;
 
     public void start() {
+        final String telemetrySensors = topics.get(KafkaConfig.TopicType.TELEMETRY_SENSORS);
+        final String telemetrySnapshots = topics.get(KafkaConfig.TopicType.TELEMETRY_SNAPSHOTS);
 
         try {
-            consumer.subscribe(List.of(kafkaConfig.getInTopic()));
-            Runtime.getRuntime().addShutdownHook(new Thread(consumer::wakeup));
+            consumer.subscribe(Collections.singletonList(telemetrySensors));
+            log.info("subscribe -> topic: {}", telemetrySensors);
+
             while (true) {
-                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
-                if (records.isEmpty()) continue;
+                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(100));
+
+                if (records.isEmpty()) {
+                    continue;
+                }
 
                 for (ConsumerRecord<String, SensorEventAvro> record : records) {
+                    SensorEventAvro event = record.value();
 
-                    log.info("topic = {}, partition = {}, offset = {}, record = {}\n",
-                            record.topic(), record.partition(), record.offset(), record.value());
+                    updateState(event).ifPresent(snapshot -> {
+                        try {
+                            producer.send(new ProducerRecord<>(telemetrySnapshots, snapshot.getHubId(), snapshot), (metadata, exception) -> {
+                            });
+                            log.info("Snapshot hubId {} -> topic {}", snapshot.getHubId(), telemetrySnapshots);
+                        } catch (Exception e) {
+                            log.error("Ошибка при отправке снапшота в топик", e);
+                        }
+                    });
+                }
 
-                    Optional<SensorsSnapshotAvro> snapshotAvro = aggregatorSnapshotRepository.updateState(record.value());
-                    if (snapshotAvro.isPresent()) {
-                        ProducerRecord<String, SpecificRecordBase> producerRecord =
-                                new ProducerRecord<>(kafkaConfig.getOutTopic(),
-                                        snapshotAvro.get().getHubId(), snapshotAvro.get());
-                        producer.send(producerRecord, (metadata, exception) -> {
-                            if (exception != null) {
-                                log.error("Error sending to Kafka, topic: {}, ",
-                                        kafkaConfig.getOutTopic(), exception);
-                                throw new RuntimeException("Exception occurs by Kafka producer", exception);
-                            }
-                            log.info("Message sent to Kafka, topic: {}, partition: {}, offset: {}",
-                                    metadata.topic(), metadata.partition(), metadata.offset());
-                        });
+                try {
+                    consumer.commitAsync();
+                } catch (Exception e) {
+                    log.error("commitAsync error ", e);
+                }
+            }
+        } catch (Exception e) {
+            log.error("sensor event error ", e);
+        } finally {
+            try {
+                if (producer != null) {
+                    producer.flush();
+                }
+            } catch (Exception e) {
+                log.error("producer flush error ", e);
+            } finally {
+                if (producer != null) {
+                    try {
+                        producer.close();
+                    } catch (Exception e) {
+                        log.error("producer close error", e);
                     }
                 }
-                consumer.commitSync();
-            }
-        } catch (WakeupException ignored) {
 
-        } catch (Exception e) {
-            log.error("Error sending to Kafka", e);
-        } finally {
-            log.info("Consumer stopped");
-            consumer.close();
-            log.info("Producer stopped");
-            producer.close();
+                if (consumer != null) {
+                    try {
+                        consumer.close();
+                    } catch (Exception e) {
+                        log.error("consumer close error", e);
+                    }
+                }
+            }
         }
+    }
+
+    public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
+        SensorsSnapshotAvro snapshot = snapshots.getOrDefault(event.getHubId(),
+                SensorsSnapshotAvro.newBuilder()
+                        .setHubId(event.getHubId())
+                        .setTimestamp(Instant.ofEpochSecond(System.currentTimeMillis()))
+                        .setSensorsState(new HashMap<>())
+                        .build());
+
+        SensorStateAvro oldState = snapshot.getSensorsState().get(event.getId());
+        if (oldState != null
+                && !oldState.getTimestamp().isBefore(Instant.ofEpochSecond(event.getTimestamp()))
+                && oldState.getData().equals(event.getPayload())) {
+            return Optional.empty();
+        }
+
+        SensorStateAvro newState = SensorStateAvro.newBuilder()
+                .setTimestamp(Instant.ofEpochSecond(event.getTimestamp()))
+                .setData(event.getPayload())
+                .build();
+
+        snapshot.getSensorsState().put(event.getId(), newState);
+
+        snapshot.setTimestamp(Instant.ofEpochSecond(event.getTimestamp()));
+
+        snapshots.put(event.getHubId(), snapshot);
+
+        return Optional.of(snapshot);
     }
 }

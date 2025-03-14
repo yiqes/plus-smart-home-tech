@@ -1,35 +1,35 @@
-analyzer:
-  kafka:
-    server: localhost:9092
-  snapshot:
-    topic: telemetry.snapshots.v1
-    deserializer: ru.yandex.practicum.utils.SnapshotDeserializer
-    group.id: AnalyzerSnapshotGroup
-  hub:
-    deserializer: ru.yandex.practicum.utils.HubDeserializer
-    group.id: AnalyzerHubGroup
-
 spring:
-  jpa:
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        format_sql: true
-    show_sql: true
-  sql:
-    init:
-      mode: always
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/analyzer-db
+    url: jdbc:postgresql://localhost:5433/analyzer-db
     username: analyzer
     password: analyzer
-
+jpa:
+  properties:
+    hibernate:
+      dialect=org:
+        hibernate:
+          dialect:
+            PostgreSQLDialect:
+analyzer:
+  kafka:
+    hub-consumer-properties:
+      "bootstrap.servers": localhost:9092
+      "group.id": analyzer-hub-group
+      "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
+      "value.deserializer": ru.yandex.practicum.deserializer.HubEventDeserializer
+    snapshot-consumer-properties:
+      "bootstrap.servers": localhost:9092
+      "group.id": analyzer-snapshot-group
+      "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
+      "value.deserializer": deserializer.SensorSnapshotDeserializer
+    topics:
+      hubs-events: telemetry.hubs.v1
+      sensors-snapshot: telemetry.snapshots.v1
 grpc:
   client:
-    router:
-      address: static://localhost:59091
+    hub-router:
+      address: 'static://localhost:59090'
       enableKeepAlive: true
       keepAliveWithoutCalls: true
       negotiationType: plaintext

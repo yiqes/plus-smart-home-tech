@@ -2,17 +2,13 @@ spring:
   application:
     name: aggregator
   config:
-    import: "configserver:"
+    import: configserver:http://localhost:8888
   cloud:
     config:
       fail-fast: true
       retry:
-        use-random-policy: true
+        useRandomPolicy: true
         max-interval: 6000
-      discovery:
-        enabled: true
-        service-id: config-server
-
 eureka:
   client:
     serviceUrl:

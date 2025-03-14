@@ -17,8 +17,8 @@ public class Action {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    @ManyToOne(cascade = CascadeType.ALL)
-    Sensor sensor;
+    @Column(name = "sensor_id", nullable = false)
+    String sensorId;
     @Enumerated(EnumType.STRING)
     ActionType type;
     Integer value;
