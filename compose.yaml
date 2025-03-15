@@ -34,12 +34,12 @@ services:
                              --bootstrap-server kafka:29092'"
     init: true
 
-  analyzer-db:
+  db:
     image: postgres:16.1
-    container_name: db
+    container_name: smart-home-db
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
-      - POSTGRES_DB=test
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=test
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_USER=user
+      - POSTGRES_DB=smart
