@@ -75,3 +75,20 @@ services:
 #networks:
 #  infra-network:
 #    driver: bridge
+  config-server:
+    image: openjdk:21
+    command: java -jar /app/config-server.jar
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./infra/config-server/target/config-server-1.0-SNAPSHOT.jar:/app/config-server.jar
+    depends_on:
+      - discovery-server
+
+  discovery-server:
+    image: openjdk:21
+    command: java -jar /app/discovery-server.jar
+    ports:
+      - "8761:8761"
+    volumes:
+      - ./infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar:/app/discovery-server.jar
