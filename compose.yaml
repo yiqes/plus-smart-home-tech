@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   kafka:
     image: confluentinc/confluent-local:7.4.3
@@ -43,3 +44,34 @@ services:
       - POSTGRES_DB=test
       - POSTGRES_USER=test
       - POSTGRES_PASSWORD=test
+
+#  config-server:
+#    image: openjdk:21-jdk-slim
+#    container_name: config-server
+#    volumes:
+#      - ./infra/config-server/target/config-server-1.0-SNAPSHOT.jar:/app.jar
+#    command: ["java", "-jar", "/app.jar"]
+#    ports:
+#      - "8888:8888"
+#    networks:
+#      - infra-network
+#    environment:
+#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+#    depends_on:
+#      - discovery-server
+#
+#  discovery-server:
+#    image: openjdk:21-jdk-slim
+#    container_name: discovery-server
+#    volumes:
+#      - ./infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar:/app.jar
+#    command: ["java", "-jar", "/app.jar"]
+#    ports:
+#      - "8761:8761"
+#    networks:
+#      - infra-network
+#
+#
+#networks:
+#  infra-network:
+#    driver: bridge

@@ -5,6 +5,7 @@ spring:
     import: configserver:http://localhost:8888
   cloud:
     config:
+      uri: http://localhost:8888
       fail-fast: true
       retry:
         useRandomPolicy: true
