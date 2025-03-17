@@ -5,6 +5,9 @@ grpc:
 spring:
   application:
     name: hubRouter
+  config:
+    uri: http://localhost:8888
+    fail-fast: true
 
 eureka:
   client:
