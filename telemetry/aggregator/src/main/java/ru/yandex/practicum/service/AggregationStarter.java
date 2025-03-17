@@ -1,12 +1,16 @@
 package ru.yandex.practicum.service;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.message.SchemaStore;
+import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.config.KafkaConfig;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
@@ -16,13 +20,16 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Consumer;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AggregationStarter {
-    private final KafkaProducer<String, SensorsSnapshotAvro> producer;
-    private final KafkaConsumer<String, SensorEventAvro> consumer;
+    //private final KafkaProducer<String, SensorsSnapshotAvro> producer;
+    protected final KafkaConfig.KafkaEventProducer producer;
+    protected final KafkaConfig.KafkaEventConsumer consumer;
+    //private final KafkaConsumer<String, SensorEventAvro> consumerR;
     private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
     private final EnumMap<KafkaConfig.TopicType, String> topics;
 
@@ -31,23 +38,22 @@ public class AggregationStarter {
         final String telemetrySnapshots = topics.get(KafkaConfig.TopicType.TELEMETRY_SNAPSHOTS);
 
         try {
-            consumer.subscribe(Collections.singletonList(telemetrySensors));
+            consumer.consume(telemetrySensors);
             log.info("subscribe -> topic: {}", telemetrySensors);
 
             while (true) {
-                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(100));
+                consumer.poll();
 
-                if (records.isEmpty()) {
+                if (consumer.poll().isEmpty()) {
                     continue;
                 }
 
-                for (ConsumerRecord<String, SensorEventAvro> record : records) {
-                    SensorEventAvro event = record.value();
+                for (ConsumerRecord<String, SpecificRecordBase> record : consumer.poll().records(telemetrySensors)) {
+                    SensorEventAvro event = (SensorEventAvro) record.value();
 
                     updateState(event).ifPresent(snapshot -> {
                         try {
-                            producer.send(new ProducerRecord<>(telemetrySnapshots, snapshot.getHubId(), snapshot), (metadata, exception) -> {
-                            });
+                            producer.send(telemetrySnapshots, event.getHubId(),  event);
                             log.info("Snapshot hubId {} -> topic {}", snapshot.getHubId(), telemetrySnapshots);
                         } catch (Exception e) {
                             log.error("Ошибка при отправке снапшота в топик", e);
@@ -66,14 +72,14 @@ public class AggregationStarter {
         } finally {
             try {
                 if (producer != null) {
-                    producer.flush();
+                    producer.closeProducer();
                 }
             } catch (Exception e) {
                 log.error("producer flush error ", e);
             } finally {
                 if (producer != null) {
                     try {
-                        producer.close();
+                        producer.closeProducer();
                     } catch (Exception e) {
                         log.error("producer close error", e);
                     }
@@ -81,7 +87,7 @@ public class AggregationStarter {
 
                 if (consumer != null) {
                     try {
-                        consumer.close();
+                        consumer.closeConsumer();
                     } catch (Exception e) {
                         log.error("consumer close error", e);
                     }

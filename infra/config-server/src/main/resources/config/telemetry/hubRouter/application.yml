@@ -1,6 +1,6 @@
 grpc:
   server:
-    port: 59090
+    port: 59091
 
 spring:
   application:

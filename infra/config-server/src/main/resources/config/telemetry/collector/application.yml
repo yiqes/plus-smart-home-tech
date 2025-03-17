@@ -5,8 +5,13 @@ hubEventTopic: telemetry.hubs.v1
 spring:
   application:
     name: collector
+  config:
+    uri: http://localhost:8888
+    fail-fast: true
 
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+    instance:
+      preferIpAddress: true
