@@ -1,0 +1,21 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    config:
+      uri: http://localhost:8888
+      server:
+        native:
+          searchLocations:
+            - classpath:config/telemetry/{application}
+            - classpath:config/commerce/{application}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/
