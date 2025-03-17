@@ -18,7 +18,6 @@
         <module>aggregator</module>
         <module>common</module>
         <module>analyzer</module>
-        <module>hubRouter</module>
     </modules>
 
 </project>
