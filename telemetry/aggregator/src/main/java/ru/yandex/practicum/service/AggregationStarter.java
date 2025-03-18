@@ -1,35 +1,24 @@
 package ru.yandex.practicum.service;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.message.SchemaStore;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.config.KafkaConfig;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Consumer;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AggregationStarter {
-    //private final KafkaProducer<String, SensorsSnapshotAvro> producer;
     protected final KafkaConfig.KafkaEventProducer producer;
     protected final KafkaConfig.KafkaEventConsumer consumer;
-    //private final KafkaConsumer<String, SensorEventAvro> consumerR;
     private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
     private final EnumMap<KafkaConfig.TopicType, String> topics;
 

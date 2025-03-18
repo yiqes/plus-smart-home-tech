@@ -7,7 +7,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,11 +28,8 @@ import java.util.Properties;
 @ConfigurationProperties("collector.kafka")
 public class KafkaConfig {
 
-//    @Value("${collector.topic.sensor}")
     String topicTelemetrySensors = "telemetry.sensors.v1";
-//    @Value("${collector.topic.hub}")
     String topicTelemetryHubs = "telemetry.hubs.v1";
-    //@Value("${collector.kafka.server}")
     String kafkaBootstrapServers = "localhost:9092";
 
     public ProducerConfig producer;

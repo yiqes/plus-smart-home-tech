@@ -18,7 +18,7 @@ import ru.yandex.practicum.warehouse.dto.AddProductToWarehouseRequest;
 import ru.yandex.practicum.warehouse.dto.AddressDto;
 import ru.yandex.practicum.warehouse.dto.AssemblyProductForOrderFromShoppingCartDto;
 import ru.yandex.practicum.warehouse.dto.NewProductInWarehouseRequestDto;
-import ru.yandex.practicum.warehouse.fiegnException.ProductInShoppingCartLowQuantityInWarehouse;
+import ru.yandex.practicum.warehouse.fiegnException.ProductWithLowQuantity;
 
 import java.util.List;
 import java.util.Map;
@@ -70,7 +70,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         List<Warehouse> productsInWarehouse = warehouseRepository.findAllById(productsInBooking.keySet());
         productsInWarehouse.forEach(warehouse -> {
             if (warehouse.getQuantity() < productsInBooking.get(warehouse.getProductId())) {
-                throw new ProductInShoppingCartLowQuantityInWarehouse(
+                throw new ProductWithLowQuantity(
                         "Product " + warehouse.getProductId() + "is sold out");
             }
         });
@@ -88,7 +88,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         List<Warehouse> productsInWarehouse = warehouseRepository.findAllById(products.keySet());
         productsInWarehouse.forEach(warehouse -> {
             if (warehouse.getQuantity() < products.get(warehouse.getProductId())) {
-                throw new ProductInShoppingCartLowQuantityInWarehouse(
+                throw new ProductWithLowQuantity(
                         "Product " + warehouse.getProductId() + "is sold out");
             }
         });

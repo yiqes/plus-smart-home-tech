@@ -52,16 +52,6 @@ public class KafkaConfig {
         }
     }
 
-//    @Getter
-//    public static class Topics {
-//        private final EnumMap<TopicType, String> topics = new EnumMap<>(TopicType.class);
-//
-//        public Topics(Map<String, String> topics) {
-//            for (Map.Entry<String, String> entry : topics.entrySet()) {
-//                this.topics.put(TopicType.from(entry.getKey()), entry.getValue());
-//            }
-//        }
-//    }
 
     @Getter
     public static class ProducerConfig {

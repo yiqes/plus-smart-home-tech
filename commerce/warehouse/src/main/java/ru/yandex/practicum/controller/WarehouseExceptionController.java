@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.common.ErrorResponse;
 import ru.yandex.practicum.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.exception.SpecifiedProductAlreadyInWarehouseException;
-import ru.yandex.practicum.warehouse.fiegnException.ProductInShoppingCartLowQuantityInWarehouse;
+import ru.yandex.practicum.warehouse.fiegnException.ProductWithLowQuantity;
 
 import java.util.Arrays;
 
@@ -35,7 +35,7 @@ public class WarehouseExceptionController {
     @ExceptionHandler({MissingServletRequestParameterException.class,
             MethodArgumentNotValidException.class,
             NoSpecifiedProductInWarehouseException.class,
-            ProductInShoppingCartLowQuantityInWarehouse.class,
+            ProductWithLowQuantity.class,
             SpecifiedProductAlreadyInWarehouseException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException(RuntimeException e) {

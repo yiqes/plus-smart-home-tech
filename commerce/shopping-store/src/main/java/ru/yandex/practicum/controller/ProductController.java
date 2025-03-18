@@ -46,7 +46,7 @@ public class ProductController {
         return productService.deleteProduct(productId);
     }
 
-    @PostMapping("/quantityState")
+    @PostMapping("/quantity/state")
     public Boolean updateProductQuantityState(@Valid SetProductQuantityStateRequestDto setProductQuantityStateRequestDto) {
         log.info("Update quantity state {}", setProductQuantityStateRequestDto);
         return productService.updateQuantityState(setProductQuantityStateRequestDto);
