@@ -33,3 +33,31 @@ services:
                              --partitions 1 --replication-factor 1 --if-not-exists \
                              --bootstrap-server kafka:29092'"
     init: true
+
+  db:
+    image: postgres:16.1
+    container_name: smart-home-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=test
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+
+  config-server:
+    image: openjdk:21
+    command: java -jar /app/config-server.jar
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./infra/config-server/target/config-server-1.0-SNAPSHOT.jar:/app/config-server.jar
+    depends_on:
+      - discovery-server
+
+  discovery-server:
+    image: openjdk:21
+    command: java -jar /app/discovery-server.jar
+    ports:
+      - "8761:8761"
+    volumes:
+      - ./infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar:/app/discovery-server.jar

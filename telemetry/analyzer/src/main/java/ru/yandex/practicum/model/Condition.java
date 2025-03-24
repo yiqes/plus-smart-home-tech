@@ -1,23 +1,31 @@
 package ru.yandex.practicum.model;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+import ru.yandex.practicum.model.enums.ScenarioConditionOperation;
+import ru.yandex.practicum.model.enums.ScenarioConditionType;
 
 @Entity
 @Table(name = "conditions")
 @Getter
 @Setter
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@Builder
 public class Condition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-
+    @Column(name = "sensor_id", nullable = false)
     String sensorId;
-    String type;
-    String operator; // Например, ">", "<", "="
-    String value;
+    @Enumerated(EnumType.STRING)
+    ScenarioConditionType type;
+    @Enumerated(EnumType.STRING)
+    ScenarioConditionOperation operation;
+    Integer value;
+    @ManyToOne(cascade = CascadeType.ALL)
+    Scenario scenario;
 }
