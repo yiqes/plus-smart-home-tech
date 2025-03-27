@@ -1,0 +1,61 @@
+spring:
+  cloud:
+    discovery.locator.enabled: true
+    gateway:
+      routes:
+        - id: warehouse-route
+          uri: lb://warehouse
+          predicates:
+            - Path=/warehouse/**
+          filters:
+            - PrefixPath=/api/v1
+        - id: order-route
+          uri: lb://order
+          predicates:
+            - Path=/order/**
+          filters:
+            - PrefixPath=/api/v1
+        - id: payment-route
+          uri: lb://payment
+          predicates:
+            - Path=/payment/**
+          filters:
+            - PrefixPath=/api/v1
+        - id: delivery-route
+          uri: lb://delivery
+          predicates:
+            - Path=/delivery/**
+          filters:
+            - PrefixPath=/api/v1
+        - id: shopping_cart_service_route
+          uri:
+            lb://shopping-cart
+          predicates:
+            - Path=/shopping-cart/**
+          filters:
+            - PrefixPath=/api/v1
+        - id: shopping-store-route
+          uri:
+            lb://shopping-store
+          predicates:
+            - Path=/shopping-store/**
+          filters:
+            - PrefixPath=/api/v1
+        - id: product-not-found
+          uri: lb://shopping-store
+          predicates:
+            - Path=/shopping-store/**
+          filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: NOT_FOUND
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 10ms
+                  maxBackoff: 50ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+server:
+  port: 8080

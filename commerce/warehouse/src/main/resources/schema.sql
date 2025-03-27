@@ -25,4 +25,4 @@ create table if not exists booking_products
     shopping_cart_id uuid references bookings (shopping_cart_id) on delete cascade primary key,
     product_id       uuid not null,
     quantity         integer
-)
+);
